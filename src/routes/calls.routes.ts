@@ -1,16 +1,16 @@
 import { Router } from "express";
-import { requireAuth } from "../middleware/auth";
+import { requireAuth, requireUserAuth } from "../middleware/auth";
 import { asyncHandler } from "../utils/asyncHandler";
 import { startCall, endCall, listCallHistory } from "../controllers/calls.controller";
 
 const router = Router();
-router.use(requireAuth);
 
 /**
  * @openapi
  * /calls/start:
  *   post:
- *     summary: Start a video/voice call (text chat stays free, calls cost coins/minute)
+ *     summary: Start a video/voice call to a partner (rings the partner; text chat stays free, calls cost coins/minute once accepted)
+ *     description: Creates a call in pending status and notifies the partner over Socket.io (call:incoming). Coins are only billed once the partner accepts.
  *     tags: [Calls]
  *     requestBody:
  *       required: true
@@ -18,13 +18,13 @@ router.use(requireAuth);
  *         application/json:
  *           schema:
  *             type: object
- *             required: [calleeId, type]
+ *             required: [partnerId, type]
  *             properties:
- *               calleeId: { type: string }
+ *               partnerId: { type: string }
  *               type: { type: string, enum: [video, voice] }
  *     responses:
  *       201:
- *         description: Call started
+ *         description: Call requested (status pending until the partner responds)
  *         content:
  *           application/json:
  *             schema:
@@ -34,13 +34,14 @@ router.use(requireAuth);
  *       402:
  *         description: Insufficient coin balance
  */
-router.post("/start", asyncHandler(startCall));
+router.post("/start", requireUserAuth, asyncHandler(startCall));
 
 /**
  * @openapi
  * /calls/{callId}/end:
  *   post:
- *     summary: End a call - bills coins for the elapsed duration
+ *     summary: End a call (caller or partner) - bills coins for the elapsed duration once accepted
+ *     description: Ends a call. If it's still pending it's simply cancelled; if it's ongoing, coins are billed for the time elapsed since the partner accepted.
  *     tags: [Calls]
  *     parameters:
  *       - in: path
@@ -58,13 +59,14 @@ router.post("/start", asyncHandler(startCall));
  *                 call: { $ref: '#/components/schemas/CallLog' }
  *                 coinBalance: { type: number }
  */
-router.post("/:callId/end", asyncHandler(endCall));
+router.post("/:callId/end", requireAuth, asyncHandler(endCall));
 
 /**
  * @openapi
  * /calls/history:
  *   get:
- *     summary: List my call history
+ *     summary: List my call history (as a caller)
+ *     description: Returns a paginated history of calls the authenticated user has made.
  *     tags: [Calls]
  *     parameters:
  *       - in: query
@@ -77,6 +79,6 @@ router.post("/:callId/end", asyncHandler(endCall));
  *       200:
  *         description: Page of past calls
  */
-router.get("/history", asyncHandler(listCallHistory));
+router.get("/history", requireUserAuth, asyncHandler(listCallHistory));
 
 export default router;

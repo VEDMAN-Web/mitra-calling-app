@@ -1,16 +1,17 @@
 import { Router } from "express";
-import { requireAuth } from "../middleware/auth";
+import { requireUserAuth } from "../middleware/auth";
 import { asyncHandler } from "../utils/asyncHandler";
 import { listConversations, getMessages, sendMessage } from "../controllers/chat.controller";
 
 const router = Router();
-router.use(requireAuth);
+router.use(requireUserAuth);
 
 /**
  * @openapi
  * /chats:
  *   get:
  *     summary: List my conversations (Messages screen)
+ *     description: Lists the authenticated user's conversations with partners, including each one's last message and unread count.
  *     tags: [Chats]
  *     responses:
  *       200:
@@ -23,6 +24,7 @@ router.get("/", asyncHandler(listConversations));
  * /chats/{conversationId}/messages:
  *   get:
  *     summary: Get messages in a conversation (also marks it as read)
+ *     description: Returns a paginated page of messages in the conversation, oldest to newest, and marks it as read for the caller.
  *     tags: [Chats]
  *     parameters:
  *       - in: path
@@ -48,6 +50,7 @@ router.get("/:conversationId/messages", asyncHandler(getMessages));
  * /chats/{conversationId}/messages:
  *   post:
  *     summary: Send a message in a conversation
+ *     description: Posts a text message to the conversation. It is also pushed in real time to both participants over Socket.io (message:new).
  *     tags: [Chats]
  *     parameters:
  *       - in: path

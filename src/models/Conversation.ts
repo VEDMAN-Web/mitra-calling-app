@@ -2,27 +2,33 @@ import { Schema, model, Document, Types } from "mongoose";
 
 export interface IConversation extends Document {
   _id: Types.ObjectId;
-  participants: Types.ObjectId[];
+  userId: Types.ObjectId;
+  partnerId: Types.ObjectId;
   lastMessage?: {
     text: string;
-    senderId: Types.ObjectId;
+    senderRole: "user" | "partner";
     createdAt: Date;
   };
-  lastReadAt: Map<string, Date>;
+  userLastReadAt: Date;
+  partnerLastReadAt: Date;
   createdAt: Date;
 }
 
 const conversationSchema = new Schema<IConversation>(
   {
-    participants: [{ type: Schema.Types.ObjectId, ref: "User", required: true }],
+    userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    partnerId: { type: Schema.Types.ObjectId, ref: "Partner", required: true },
     lastMessage: {
       text: { type: String },
-      senderId: { type: Schema.Types.ObjectId, ref: "User" },
+      senderRole: { type: String, enum: ["user", "partner"] },
       createdAt: { type: Date },
     },
-    lastReadAt: { type: Map, of: Date, default: {} },
+    userLastReadAt: { type: Date, required: true, default: () => new Date(0) },
+    partnerLastReadAt: { type: Date, required: true, default: () => new Date(0) },
   },
   { timestamps: { createdAt: true, updatedAt: false } }
 );
+
+conversationSchema.index({ userId: 1, partnerId: 1 }, { unique: true });
 
 export const Conversation = model<IConversation>("Conversation", conversationSchema);

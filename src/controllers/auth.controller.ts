@@ -1,16 +1,13 @@
 import { Request, Response } from "express";
 import { User } from "../models/User";
-import { Otp } from "../models/Otp";
 import { Transaction } from "../models/Transaction";
-import { signToken } from "../utils/jwt";
+import { signToken, getTokenExpiry } from "../utils/jwt";
 import { HttpError } from "../utils/HttpError";
+import { requestOtpForPhone, verifyOtpForPhone, requestOtpForEmail, verifyOtpForEmail } from "../services/otp.service";
+import { blacklistToken } from "../services/tokenBlacklist.service";
 
-const OTP_TTL_MINUTES = 5;
 const SIGNUP_BONUS_COINS = 100;
-
-function generateOtpCode(): string {
-  return String(Math.floor(100000 + Math.random() * 900000));
-}
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 async function grantSignupBonus(userId: string) {
   const user = await User.findById(userId);
@@ -32,7 +29,7 @@ export async function createGuest(_req: Request, res: Response) {
   });
   await grantSignupBonus(String(user._id));
 
-  const token = signToken(String(user._id));
+  const token = signToken(String(user._id), "user");
   res.status(201).json({ token, user });
 }
 
@@ -42,12 +39,9 @@ export async function requestOtp(req: Request, res: Response) {
     throw new HttpError(400, "phone is required");
   }
 
-  const code = generateOtpCode();
-  const expiresAt = new Date(Date.now() + OTP_TTL_MINUTES * 60 * 1000);
-  await Otp.findOneAndUpdate({ phone }, { code, expiresAt }, { upsert: true });
-
   // No SMS provider wired up yet: return the OTP directly so the flow is usable in dev.
-  res.json({ message: "OTP generated", phone, otp: code, expiresInMinutes: OTP_TTL_MINUTES });
+  const { otp, expiresInMinutes } = await requestOtpForPhone(phone);
+  res.json({ message: "OTP generated", phone, otp, expiresInMinutes });
 }
 
 export async function verifyOtp(req: Request, res: Response) {
@@ -56,11 +50,7 @@ export async function verifyOtp(req: Request, res: Response) {
     throw new HttpError(400, "phone and otp are required");
   }
 
-  const record = await Otp.findOne({ phone });
-  if (!record || record.code !== otp || record.expiresAt < new Date()) {
-    throw new HttpError(400, "Invalid or expired OTP");
-  }
-  await Otp.deleteOne({ _id: record._id });
+  await verifyOtpForPhone(phone, otp);
 
   let user = await User.findOne({ phone });
   let isNewUser = false;
@@ -77,6 +67,68 @@ export async function verifyOtp(req: Request, res: Response) {
     await grantSignupBonus(String(user._id));
   }
 
-  const token = signToken(String(user._id));
+  const token = signToken(String(user._id), "user");
   res.json({ token, user, isNewUser });
+}
+
+export async function requestEmailOtp(req: Request, res: Response) {
+  const { email } = req.body as { email?: string };
+  if (!email || typeof email !== "string" || !EMAIL_REGEX.test(email)) {
+    throw new HttpError(400, "A valid email is required");
+  }
+
+  const normalizedEmail = email.toLowerCase();
+  const { expiresInMinutes } = await requestOtpForEmail(normalizedEmail);
+  res.json({ message: "OTP generated", email: normalizedEmail, expiresInMinutes });
+}
+
+export async function resendEmailOtp(req: Request, res: Response) {
+  const { email } = req.body as { email?: string };
+  if (!email || typeof email !== "string" || !EMAIL_REGEX.test(email)) {
+    throw new HttpError(400, "A valid email is required");
+  }
+
+  const normalizedEmail = email.toLowerCase();
+  const { expiresInMinutes } = await requestOtpForEmail(normalizedEmail);
+  res.json({ message: "OTP resent", email: normalizedEmail, expiresInMinutes });
+}
+
+export async function verifyEmailOtp(req: Request, res: Response) {
+  const { email, otp } = req.body as { email?: string; otp?: string };
+  if (!email || !otp || !EMAIL_REGEX.test(email)) {
+    throw new HttpError(400, "A valid email and otp are required");
+  }
+
+  const normalizedEmail = email.toLowerCase();
+  await verifyOtpForEmail(normalizedEmail, otp);
+
+  let user = await User.findOne({ email: normalizedEmail });
+  let isNewUser = false;
+  if (!user) {
+    user = await User.create({
+      isGuest: false,
+      email: normalizedEmail,
+      name: `User ${normalizedEmail.split("@")[0]}`,
+      coinBalance: SIGNUP_BONUS_COINS,
+    });
+    isNewUser = true;
+  }
+  if (isNewUser) {
+    await grantSignupBonus(String(user._id));
+  }
+
+  const token = signToken(String(user._id), "user");
+  res.json({ token, user, isNewUser });
+}
+
+export async function logout(req: Request, res: Response) {
+  const token = req.token!;
+  await blacklistToken(token, getTokenExpiry(token));
+
+  if (req.actor?.role === "user") {
+    const user = await User.findById(req.actor.id).select("isGuest");
+    if (user?.isGuest) await user.deleteOne();
+  }
+
+  res.json({ message: "Logged out" });
 }

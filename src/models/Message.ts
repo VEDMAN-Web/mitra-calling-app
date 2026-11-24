@@ -3,7 +3,7 @@ import { Schema, model, Document, Types } from "mongoose";
 export interface IMessage extends Document {
   _id: Types.ObjectId;
   conversationId: Types.ObjectId;
-  senderId: Types.ObjectId;
+  senderRole: "user" | "partner";
   text: string;
   createdAt: Date;
 }
@@ -11,7 +11,7 @@ export interface IMessage extends Document {
 const messageSchema = new Schema<IMessage>(
   {
     conversationId: { type: Schema.Types.ObjectId, ref: "Conversation", required: true, index: true },
-    senderId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    senderRole: { type: String, enum: ["user", "partner"], required: true },
     text: { type: String, required: true },
   },
   { timestamps: { createdAt: true, updatedAt: false } }

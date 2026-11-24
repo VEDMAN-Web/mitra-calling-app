@@ -1,16 +1,17 @@
 import { Router } from "express";
-import { requireAuth } from "../middleware/auth";
+import { requireUserAuth } from "../middleware/auth";
 import { asyncHandler } from "../utils/asyncHandler";
 import { getBalance, listPackages, purchasePackage, listTransactions } from "../controllers/coins.controller";
 
 const router = Router();
-router.use(requireAuth);
+router.use(requireUserAuth);
 
 /**
  * @openapi
  * /coins/balance:
  *   get:
  *     summary: Get my coin balance (wallet header)
+ *     description: Returns the authenticated user's current coin balance, as shown in the wallet header on every screen.
  *     tags: [Coins]
  *     responses:
  *       200:
@@ -29,6 +30,7 @@ router.get("/balance", asyncHandler(getBalance));
  * /coins/packages:
  *   get:
  *     summary: List coin packages (Get more coins)
+ *     description: Lists the purchasable coin packages shown on the "Get more coins" screen.
  *     tags: [Coins]
  *     responses:
  *       200:
@@ -49,6 +51,7 @@ router.get("/packages", asyncHandler(listPackages));
  * /coins/purchase:
  *   post:
  *     summary: Purchase a coin package (demo purchase only, no real payment)
+ *     description: Credits the user's wallet with the coins from the given package and records a purchase transaction. No real payment is processed.
  *     tags: [Coins]
  *     requestBody:
  *       required: true
@@ -72,6 +75,7 @@ router.post("/purchase", asyncHandler(purchasePackage));
  * /coins/transactions:
  *   get:
  *     summary: List my coin transaction history
+ *     description: Returns a paginated history of the user's coin transactions (purchases, call deductions, gifts sent, signup bonus).
  *     tags: [Coins]
  *     parameters:
  *       - in: query

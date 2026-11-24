@@ -1,15 +1,16 @@
 import { Schema, model, Document, Types } from "mongoose";
 
 export type CallType = "video" | "voice";
-export type CallStatus = "ongoing" | "completed";
+export type CallStatus = "pending" | "ongoing" | "declined" | "completed";
 
 export interface ICallLog extends Document {
   _id: Types.ObjectId;
   callerId: Types.ObjectId;
-  calleeId: Types.ObjectId;
+  partnerId: Types.ObjectId;
   type: CallType;
   status: CallStatus;
-  startedAt: Date;
+  requestedAt: Date;
+  acceptedAt?: Date;
   endedAt?: Date;
   durationSeconds?: number;
   coinsCharged: number;
@@ -17,10 +18,11 @@ export interface ICallLog extends Document {
 
 const callLogSchema = new Schema<ICallLog>({
   callerId: { type: Schema.Types.ObjectId, ref: "User", required: true },
-  calleeId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+  partnerId: { type: Schema.Types.ObjectId, ref: "Partner", required: true },
   type: { type: String, enum: ["video", "voice"], required: true },
-  status: { type: String, enum: ["ongoing", "completed"], required: true, default: "ongoing" },
-  startedAt: { type: Date, required: true, default: Date.now },
+  status: { type: String, enum: ["pending", "ongoing", "declined", "completed"], required: true, default: "pending" },
+  requestedAt: { type: Date, required: true, default: Date.now },
+  acceptedAt: { type: Date },
   endedAt: { type: Date },
   durationSeconds: { type: Number },
   coinsCharged: { type: Number, required: true, default: 0 },

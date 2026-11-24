@@ -1,21 +1,29 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+import http from "http";
 import express from "express";
 import swaggerUi from "swagger-ui-express";
 import { connectDB } from "./config/db";
 import apiRoutes from "./routes";
-import swaggerSpec from "./swagger";
+import userSwaggerSpec from "./swagger/user";
+import partnerSwaggerSpec from "./swagger/partner";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
+import { initChatSocket } from "./sockets/chat.socket";
+import { UPLOADS_ROOT } from "./config/upload";
 
 const app = express();
+const httpServer = http.createServer(app);
+initChatSocket(httpServer);
 app.use(express.json());
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use("/uploads", express.static(UPLOADS_ROOT));
+app.use("/user/api-docs", swaggerUi.serveFiles(userSwaggerSpec), swaggerUi.setup(userSwaggerSpec));
+app.use("/partner/api-docs", swaggerUi.serveFiles(partnerSwaggerSpec), swaggerUi.setup(partnerSwaggerSpec));
 app.use("/api", apiRoutes);
 
 app.use(notFoundHandler);
@@ -26,7 +34,7 @@ const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/mitra_
 
 connectDB(MONGODB_URI)
   .then(() => {
-    app.listen(PORT, () => {
+    httpServer.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
   })

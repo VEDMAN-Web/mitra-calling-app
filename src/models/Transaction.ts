@@ -1,6 +1,6 @@
 import { Schema, model, Document, Types } from "mongoose";
 
-export type TransactionType = "purchase" | "call_deduction" | "signup_bonus";
+export type TransactionType = "purchase" | "call_deduction" | "signup_bonus" | "gift_sent";
 
 export interface ITransaction extends Document {
   userId: Types.ObjectId;
@@ -14,7 +14,7 @@ export interface ITransaction extends Document {
 const transactionSchema = new Schema<ITransaction>(
   {
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
-    type: { type: String, enum: ["purchase", "call_deduction", "signup_bonus"], required: true },
+    type: { type: String, enum: ["purchase", "call_deduction", "signup_bonus", "gift_sent"], required: true },
     amount: { type: Number, required: true },
     balanceAfter: { type: Number, required: true },
     meta: { type: Schema.Types.Mixed },

@@ -4,10 +4,12 @@ export interface IUser extends Document {
   _id: Types.ObjectId;
   isGuest: boolean;
   phone?: string;
+  email?: string;
   name: string;
   age?: number;
   bio?: string;
   avatarUrl?: string;
+  imageUrl?: string;
   coinBalance: number;
   favorites: Types.ObjectId[];
   createdAt: Date;
@@ -17,12 +19,14 @@ const userSchema = new Schema<IUser>(
   {
     isGuest: { type: Boolean, required: true, default: false },
     phone: { type: String, unique: true, sparse: true },
+    email: { type: String, unique: true, sparse: true, lowercase: true },
     name: { type: String, required: true },
     age: { type: Number, min: 18 },
     bio: { type: String },
     avatarUrl: { type: String },
+    imageUrl: { type: String },
     coinBalance: { type: Number, required: true, default: 100 },
-    favorites: [{ type: Schema.Types.ObjectId, ref: "User", default: [] }],
+    favorites: [{ type: Schema.Types.ObjectId, ref: "Partner", default: [] }],
   },
   { timestamps: { createdAt: true, updatedAt: false } }
 );
