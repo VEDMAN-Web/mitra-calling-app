@@ -1,22 +1,42 @@
 import { Router } from "express";
 import { requirePartnerAuth } from "../middleware/auth";
 import { asyncHandler } from "../utils/asyncHandler";
-import { uploadPartnerDocs } from "../config/upload";
+import { uploadPartnerDocs, uploadPartnerPreviewVideo } from "../config/upload";
 import {
+  createGuest,
   requestOtp,
   verifyOtp,
+  resendOtp,
+  requestEmailOtp,
+  verifyEmailOtp,
+  resendEmailOtp,
   getMe,
   updateMe,
+  uploadPreviewVideo,
   submitVerification,
   setAvailability,
   getDashboard,
   getPayoutSummary,
   listGiftHistory,
 } from "../controllers/partner.controller";
-import { listConversations, getMessages, sendMessage } from "../controllers/chat.controller";
-import { respondToCall, endCall, listCallHistory } from "../controllers/calls.controller";
+import { listConversations, getMessages } from "../controllers/chat.controller";
+import { listCallHistory } from "../controllers/calls.controller";
 
 const router = Router();
+
+/**
+ * @openapi
+ * /partners/auth/guest:
+ *   post:
+ *     summary: Quick login - create an instant guest partner account
+ *     description: Creates a brand-new guest partner account with no phone or email required and returns a JWT immediately. isGuest is true until the partner adds a phone or email via PATCH /partners/me.
+ *     tags: [Partner Auth]
+ *     security: []
+ *     responses:
+ *       201:
+ *         description: Guest partner account created
+ */
+router.post("/auth/guest", asyncHandler(createGuest));
 
 /**
  * @openapi
@@ -43,6 +63,29 @@ router.post("/auth/otp/request", asyncHandler(requestOtp));
 
 /**
  * @openapi
+ * /partners/auth/otp/resend:
+ *   post:
+ *     summary: Resend the OTP for partner contact (phone) login
+ *     description: Generates and sends a new OTP for the given partner phone number, replacing any previously generated one. No SMS provider is wired up yet, so the OTP is returned directly in the response for testing.
+ *     tags: [Partner Auth]
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [phone]
+ *             properties:
+ *               phone: { type: string, example: "+919876543210" }
+ *     responses:
+ *       200:
+ *         description: OTP resent (returned directly since no SMS provider is wired up yet)
+ */
+router.post("/auth/otp/resend", asyncHandler(resendOtp));
+
+/**
+ * @openapi
  * /partners/auth/otp/verify:
  *   post:
  *     summary: Verify OTP and log in as a partner (creates the partner on first login)
@@ -65,6 +108,82 @@ router.post("/auth/otp/request", asyncHandler(requestOtp));
  */
 router.post("/auth/otp/verify", asyncHandler(verifyOtp));
 
+/**
+ * @openapi
+ * /partners/auth/email/otp/request:
+ *   post:
+ *     summary: Request an OTP for partner email login
+ *     description: Generates an OTP for the given email address. No email provider is wired up yet, so a fixed dummy OTP (123456) is used for every email - it is not returned in the response.
+ *     tags: [Partner Auth]
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email]
+ *             properties:
+ *               email: { type: string, example: "partner@gmail.com" }
+ *     responses:
+ *       200:
+ *         description: OTP generated
+ *       400:
+ *         description: Invalid email
+ */
+router.post("/auth/email/otp/request", asyncHandler(requestEmailOtp));
+
+/**
+ * @openapi
+ * /partners/auth/email/otp/resend:
+ *   post:
+ *     summary: Resend the OTP for partner email login
+ *     description: Generates and sends a new OTP for the given email address, replacing any previously generated one. No email provider is wired up yet, so a fixed dummy OTP (123456) is used for every email - it is not returned in the response.
+ *     tags: [Partner Auth]
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email]
+ *             properties:
+ *               email: { type: string, example: "partner@gmail.com" }
+ *     responses:
+ *       200:
+ *         description: OTP resent
+ *       400:
+ *         description: Invalid email
+ */
+router.post("/auth/email/otp/resend", asyncHandler(resendEmailOtp));
+
+/**
+ * @openapi
+ * /partners/auth/email/otp/verify:
+ *   post:
+ *     summary: Verify email OTP and log in as a partner (creates the partner on first login)
+ *     description: Verifies the OTP for an email address and returns a JWT, creating the partner account on the first successful verification for that email.
+ *     tags: [Partner Auth]
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, otp]
+ *             properties:
+ *               email: { type: string, example: "partner@gmail.com" }
+ *               otp: { type: string, example: "123456" }
+ *     responses:
+ *       200:
+ *         description: Logged in
+ *       400:
+ *         description: Invalid or expired OTP
+ */
+router.post("/auth/email/otp/verify", asyncHandler(verifyEmailOtp));
+
 router.use(requirePartnerAuth);
 
 /**
@@ -84,11 +203,21 @@ router.get("/me", asyncHandler(getMe));
  * @openapi
  * /partners/me:
  *   patch:
- *     summary: Edit my partner profile (display name, languages, bio, avatar)
- *     description: Updates one or more of the authenticated partner's editable profile fields. Omitted fields are left unchanged.
+ *     summary: Edit my partner profile (display name, languages, bio, avatar, phone, email)
+ *     description: Updates one or more of the authenticated partner's editable profile fields. Omitted fields are left unchanged. Adding a phone or email turns a guest partner into a real one (isGuest becomes false); a guest partner who never adds either stays a guest.
  *     tags: [Partner Profile]
  *     requestBody:
  *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name: { type: string }
+ *               languages: { type: array, items: { type: string } }
+ *               bio: { type: string }
+ *               avatar: { type: string, format: binary, description: "Profile photo file - uploaded and stored, served back as avatarUrl" }
+ *               phone: { type: string }
+ *               email: { type: string }
  *         application/json:
  *           schema:
  *             type: object
@@ -97,18 +226,46 @@ router.get("/me", asyncHandler(getMe));
  *               languages: { type: array, items: { type: string } }
  *               bio: { type: string }
  *               avatarUrl: { type: string }
+ *               phone: { type: string }
+ *               email: { type: string }
  *     responses:
  *       200:
  *         description: Updated profile
+ *       409:
+ *         description: Phone or email already in use
  */
-router.patch("/me", asyncHandler(updateMe));
+router.patch("/me", uploadPartnerDocs.single("avatar"), asyncHandler(updateMe));
+
+/**
+ * @openapi
+ * /partners/me/preview-video:
+ *   post:
+ *     summary: Upload my preview video
+ *     description: Uploads a short preview video clip. It is stored in this partner's folder in Google Drive and the resulting Drive link is saved as previewUrl. Any previously uploaded preview video is deleted from Drive.
+ *     tags: [Partner Profile]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required: [previewVideo]
+ *             properties:
+ *               previewVideo: { type: string, format: binary }
+ *     responses:
+ *       201:
+ *         description: Preview video uploaded
+ *       400:
+ *         description: previewVideo file is required
+ */
+router.post("/me/preview-video", uploadPartnerPreviewVideo.single("previewVideo"), asyncHandler(uploadPreviewVideo));
 
 /**
  * @openapi
  * /partners/verification:
  *   post:
- *     summary: Submit ID + selfie for verification (sets status to in_review)
- *     description: Uploads an ID document image and a selfie image for identity verification and sets verificationStatus to in_review pending admin approval.
+ *     summary: Submit ID + selfie for verification
+ *     description: Uploads an ID document image and a selfie image for identity verification. Sets verificationStatus to approved immediately (for now, no admin review required).
  *     tags: [Partner Profile]
  *     requestBody:
  *       required: true
@@ -120,6 +277,7 @@ router.patch("/me", asyncHandler(updateMe));
  *             properties:
  *               idType: { type: string, enum: [aadhaar, driving_licence, passport, voter_id] }
  *               age: { type: number }
+ *               name: { type: string, description: "Display name" }
  *               idImage: { type: string, format: binary }
  *               selfieImage: { type: string, format: binary }
  *     responses:
@@ -241,77 +399,9 @@ router.get("/chats", asyncHandler(listConversations));
  */
 router.get("/chats/:conversationId/messages", asyncHandler(getMessages));
 
-/**
- * @openapi
- * /partners/chats/{conversationId}/messages:
- *   post:
- *     summary: Send a message in a conversation
- *     description: Posts a text message to the conversation. It is also pushed in real time to both participants over Socket.io (message:new).
- *     tags: [Partner Chats]
- *     parameters:
- *       - in: path
- *         name: conversationId
- *         required: true
- *         schema: { type: string }
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [text]
- *             properties:
- *               text: { type: string }
- *     responses:
- *       201:
- *         description: Message sent
- */
-router.post("/chats/:conversationId/messages", asyncHandler(sendMessage));
-
-/**
- * @openapi
- * /partners/calls/{callId}/respond:
- *   post:
- *     summary: Accept or decline an incoming call request
- *     description: Accepts or declines a pending call. Accepting moves it to ongoing and notifies the caller (call:accepted); declining notifies the caller too (call:declined).
- *     tags: [Partner Calls]
- *     parameters:
- *       - in: path
- *         name: callId
- *         required: true
- *         schema: { type: string }
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [accept]
- *             properties:
- *               accept: { type: boolean }
- *     responses:
- *       200:
- *         description: Call accepted (status ongoing) or declined
- */
-router.post("/calls/:callId/respond", asyncHandler(respondToCall));
-
-/**
- * @openapi
- * /partners/calls/{callId}/end:
- *   post:
- *     summary: End a call from the partner side
- *     description: Ends an ongoing call, billing the caller's coins for the time elapsed since the call was accepted.
- *     tags: [Partner Calls]
- *     parameters:
- *       - in: path
- *         name: callId
- *         required: true
- *         schema: { type: string }
- *     responses:
- *       200:
- *         description: Call ended and billed
- */
-router.post("/calls/:callId/end", asyncHandler(endCall));
+// Sending a message is socket-only: emit "message:send" { conversationId, text } over Socket.io.
+// Responding to and ending a call are socket-only too: emit "call:respond" { callId, accept } and
+// "call:end" { callId }. There are no REST endpoints for any of these.
 
 /**
  * @openapi

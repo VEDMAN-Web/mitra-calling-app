@@ -35,7 +35,9 @@ export const schemas = {
     type: "object",
     properties: {
       _id: { type: "string" },
+      isGuest: { type: "boolean" },
       phone: { type: "string" },
+      email: { type: "string" },
       name: { type: "string" },
       age: { type: "number" },
       languages: { type: "array", items: { type: "string" } },
@@ -70,7 +72,7 @@ export const schemas = {
       _id: { type: "string" },
       callerId: { type: "string" },
       partnerId: { type: "string" },
-      type: { type: "string", enum: ["video", "voice"] },
+      type: { type: "string", enum: ["video"] },
       status: { type: "string", enum: ["pending", "ongoing", "declined", "completed"] },
       requestedAt: { type: "string", format: "date-time" },
       acceptedAt: { type: "string", format: "date-time" },

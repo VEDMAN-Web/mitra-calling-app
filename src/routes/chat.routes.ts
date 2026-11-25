@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { requireUserAuth } from "../middleware/auth";
 import { asyncHandler } from "../utils/asyncHandler";
-import { listConversations, getMessages, sendMessage } from "../controllers/chat.controller";
+import { listConversations, getMessages } from "../controllers/chat.controller";
 
 const router = Router();
 router.use(requireUserAuth);
@@ -45,37 +45,7 @@ router.get("/", asyncHandler(listConversations));
  */
 router.get("/:conversationId/messages", asyncHandler(getMessages));
 
-/**
- * @openapi
- * /chats/{conversationId}/messages:
- *   post:
- *     summary: Send a message in a conversation
- *     description: Posts a text message to the conversation. It is also pushed in real time to both participants over Socket.io (message:new).
- *     tags: [Chats]
- *     parameters:
- *       - in: path
- *         name: conversationId
- *         required: true
- *         schema: { type: string }
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [text]
- *             properties:
- *               text: { type: string }
- *     responses:
- *       201:
- *         description: Message sent
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message: { $ref: '#/components/schemas/Message' }
- */
-router.post("/:conversationId/messages", asyncHandler(sendMessage));
+// Sending a message is socket-only: emit "message:send" { conversationId, text } over Socket.io.
+// There is no REST endpoint to post a message.
 
 export default router;

@@ -3,6 +3,8 @@ import { Server, Socket } from "socket.io";
 import { verifyToken, ActorRole } from "../utils/jwt";
 import { postMessage } from "../services/chat.service";
 import { HttpError } from "../utils/HttpError";
+import { room } from "./rooms";
+import { registerCallHandlers } from "./calls.socket";
 
 let io: Server | undefined;
 
@@ -55,25 +57,15 @@ export function initChatSocket(httpServer: HttpServer): Server {
         }
       }
     );
+
+    registerCallHandlers(io!, socket, actor);
   });
 
   return io;
-}
-
-export function room(role: ActorRole, id: string): string {
-  return `${role}:${id}`;
 }
 
 export function broadcastNewMessage(userId: string, partnerId: string, conversationId: string, message: unknown) {
   if (!io) return;
   io.to(room("user", userId)).emit("message:new", { conversationId, message });
   io.to(room("partner", partnerId)).emit("message:new", { conversationId, message });
-}
-
-export function emitToUser(userId: string, event: string, payload: unknown) {
-  io?.to(room("user", userId)).emit(event, payload);
-}
-
-export function emitToPartner(partnerId: string, event: string, payload: unknown) {
-  io?.to(room("partner", partnerId)).emit(event, payload);
 }

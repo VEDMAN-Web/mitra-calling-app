@@ -3,9 +3,7 @@ import { Conversation } from "../models/Conversation";
 import { Message } from "../models/Message";
 import { User } from "../models/User";
 import { Partner } from "../models/Partner";
-import { assertParticipant, postMessage } from "../services/chat.service";
-import { broadcastNewMessage } from "../sockets/chat.socket";
-import { HttpError } from "../utils/HttpError";
+import { assertParticipant } from "../services/chat.service";
 
 export async function listConversations(req: Request, res: Response) {
   const actor = req.actor!;
@@ -66,16 +64,4 @@ export async function getMessages(req: Request, res: Response) {
   await conversation.save();
 
   res.json({ page, limit, messages: messages.reverse() });
-}
-
-export async function sendMessage(req: Request, res: Response) {
-  const actor = req.actor!;
-  const { text } = req.body as { text?: string };
-  if (!text) throw new HttpError(400, "text is required");
-
-  const { conversation, message } = await postMessage(String(req.params.conversationId), actor, text);
-
-  broadcastNewMessage(String(conversation.userId), String(conversation.partnerId), String(conversation._id), message);
-
-  res.status(201).json({ message });
 }

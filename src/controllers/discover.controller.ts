@@ -20,7 +20,7 @@ export async function listDiscoverFeed(req: Request, res: Response) {
   const favorites = new Set((me?.favorites || []).map((id) => String(id)));
 
   const partners = await Partner.find({ verificationStatus: "approved" })
-    .select("name age bio avatarUrl selfieImageUrl languages isOnline")
+    .select("name age bio avatarUrl selfieImageUrl previewUrl languages isOnline")
     .skip((page - 1) * limit)
     .limit(limit)
     .sort({ createdAt: -1 });
@@ -37,6 +37,7 @@ export async function listDiscoverFeed(req: Request, res: Response) {
       bio: p.bio,
       avatarUrl: p.avatarUrl,
       selfieImageUrl: toAbsoluteUrl(fileBaseUrl, p.selfieImageUrl),
+      previewUrl: p.previewUrl,
       languages: p.languages,
       isOnline: p.isOnline,
       isFavorited: favorites.has(String(p._id)),

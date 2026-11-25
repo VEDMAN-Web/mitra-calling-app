@@ -5,12 +5,15 @@ export type IdDocumentType = "aadhaar" | "driving_licence" | "passport" | "voter
 
 export interface IPartner extends Document {
   _id: Types.ObjectId;
-  phone: string;
+  isGuest: boolean;
+  phone?: string;
+  email?: string;
   name: string;
   age?: number;
   languages: string[];
   bio?: string;
   avatarUrl?: string;
+  previewUrl?: string;
   isOnline: boolean;
   verificationStatus: VerificationStatus;
   idDocument?: {
@@ -24,12 +27,15 @@ export interface IPartner extends Document {
 
 const partnerSchema = new Schema<IPartner>(
   {
-    phone: { type: String, required: true, unique: true },
+    isGuest: { type: Boolean, required: true, default: false },
+    phone: { type: String, unique: true, sparse: true },
+    email: { type: String, unique: true, sparse: true, lowercase: true },
     name: { type: String, required: true },
     age: { type: Number, min: 18 },
     languages: [{ type: String }],
     bio: { type: String },
     avatarUrl: { type: String },
+    previewUrl: { type: String },
     isOnline: { type: Boolean, required: true, default: false },
     verificationStatus: {
       type: String,
