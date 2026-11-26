@@ -10,7 +10,7 @@ const spec = swaggerJsdoc({
     info: {
       title: "Mitra User API",
       version: "1.0.0",
-      description: `Backend API for the Mitra user app (auth, discover, chat, coins/wallet, calls). For the partner-side API (the people who get called), see /partner/api-docs. For admin endpoints, see /admin/api-docs.
+      description: `Backend API for the Mitra user app (auth, discover, chat, diamonds/wallet, calls). For the partner-side API (the people who get called), see /partner/api-docs. For admin endpoints, see /admin/api-docs.
 
 ## Real-time events (Socket.io)
 
@@ -49,7 +49,7 @@ Sending via \`POST /chats/{conversationId}/messages\` also triggers a \`message:
     `${routesDir}/discover.routes.{ts,js}`,
     `${routesDir}/gift.routes.{ts,js}`,
     `${routesDir}/chat.routes.{ts,js}`,
-    `${routesDir}/coins.routes.{ts,js}`,
+    `${routesDir}/diamonds.routes.{ts,js}`,
     `${routesDir}/calls.routes.{ts,js}`,
   ],
 }) as any;

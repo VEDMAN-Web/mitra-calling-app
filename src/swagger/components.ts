@@ -18,7 +18,7 @@ export const schemas = {
       bio: { type: "string" },
       avatarUrl: { type: "string" },
       imageUrl: { type: "string" },
-      coinBalance: { type: "number" },
+      diamondBalance: { type: "number" },
     },
   },
   Message: {
@@ -53,14 +53,14 @@ export const schemas = {
       id: { type: "string" },
       label: { type: "string" },
       emoji: { type: "string" },
-      coins: { type: "number" },
+      diamonds: { type: "number" },
     },
   },
-  CoinPackage: {
+  DiamondPackage: {
     type: "object",
     properties: {
       id: { type: "string" },
-      coins: { type: "number" },
+      diamonds: { type: "number" },
       label: { type: "string" },
       priceInr: { type: "number" },
       bestValue: { type: "boolean" },
@@ -78,7 +78,7 @@ export const schemas = {
       acceptedAt: { type: "string", format: "date-time" },
       endedAt: { type: "string", format: "date-time" },
       durationSeconds: { type: "number" },
-      coinsCharged: { type: "number" },
+      diamondsCharged: { type: "number" },
     },
   },
   Error: {

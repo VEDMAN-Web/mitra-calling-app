@@ -6,7 +6,7 @@ import { HttpError } from "../../common/utils/HttpError";
 import { requestOtpForPhone, verifyOtpForPhone, requestOtpForEmail, verifyOtpForEmail } from "../../shared/services/otp.service";
 import { blacklistToken } from "../../shared/services/tokenBlacklist.service";
 
-const SIGNUP_BONUS_COINS = 100;
+const SIGNUP_BONUS_DIAMONDS = 100;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 async function grantSignupBonus(userId: string) {
@@ -15,8 +15,8 @@ async function grantSignupBonus(userId: string) {
   await Transaction.create({
     userId: user._id,
     type: "signup_bonus",
-    amount: user.coinBalance,
-    balanceAfter: user.coinBalance,
+    amount: user.diamondBalance,
+    balanceAfter: user.diamondBalance,
   });
 }
 
@@ -25,7 +25,7 @@ export async function createGuest(_req: Request, res: Response) {
   const user = await User.create({
     isGuest: true,
     name: `Guest explorer ${guestNumber}`,
-    coinBalance: SIGNUP_BONUS_COINS,
+    diamondBalance: SIGNUP_BONUS_DIAMONDS,
   });
   await grantSignupBonus(String(user._id));
 
@@ -59,7 +59,7 @@ export async function verifyOtp(req: Request, res: Response) {
       isGuest: false,
       phone,
       name: `User ${phone.slice(-4)}`,
-      coinBalance: SIGNUP_BONUS_COINS,
+      diamondBalance: SIGNUP_BONUS_DIAMONDS,
     });
     isNewUser = true;
   }
@@ -109,7 +109,7 @@ export async function verifyEmailOtp(req: Request, res: Response) {
       isGuest: false,
       email: normalizedEmail,
       name: `User ${normalizedEmail.split("@")[0]}`,
-      coinBalance: SIGNUP_BONUS_COINS,
+      diamondBalance: SIGNUP_BONUS_DIAMONDS,
     });
     isNewUser = true;
   }

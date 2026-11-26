@@ -13,7 +13,7 @@ export interface ICallLog extends Document {
   acceptedAt?: Date;
   endedAt?: Date;
   durationSeconds?: number;
-  coinsCharged: number;
+  diamondsCharged: number;
 }
 
 const callLogSchema = new Schema<ICallLog>({
@@ -25,7 +25,7 @@ const callLogSchema = new Schema<ICallLog>({
   acceptedAt: { type: Date },
   endedAt: { type: Date },
   durationSeconds: { type: Number },
-  coinsCharged: { type: Number, required: true, default: 0 },
+  diamondsCharged: { type: Number, required: true, default: 0 },
 });
 
 export const CallLog = model<ICallLog>("CallLog", callLogSchema);

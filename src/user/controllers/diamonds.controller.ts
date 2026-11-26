@@ -1,28 +1,28 @@
 import { Request, Response } from "express";
 import { User } from "../../models/User";
 import { Transaction } from "../../models/Transaction";
-import { COIN_PACKAGES } from "../../config/coinPackages";
+import { DIAMOND_PACKAGES } from "../../config/diamondPackages";
 import { HttpError } from "../../common/utils/HttpError";
 
 export async function getBalance(req: Request, res: Response) {
-  const user = await User.findById(req.userId).select("coinBalance");
+  const user = await User.findById(req.userId).select("diamondBalance");
   if (!user) throw new HttpError(404, "User not found");
-  res.json({ coinBalance: user.coinBalance });
+  res.json({ diamondBalance: user.diamondBalance });
 }
 
 export async function listPackages(_req: Request, res: Response) {
-  res.json({ packages: COIN_PACKAGES });
+  res.json({ packages: DIAMOND_PACKAGES });
 }
 
 export async function purchasePackage(req: Request, res: Response) {
   const { packageId } = req.body as { packageId?: string };
-  const pack = COIN_PACKAGES.find((p) => p.id === packageId);
+  const pack = DIAMOND_PACKAGES.find((p) => p.id === packageId);
   if (!pack) throw new HttpError(400, "Invalid packageId");
 
   // Demo purchase only: no real payment is processed.
   const user = await User.findByIdAndUpdate(
     req.userId,
-    { $inc: { coinBalance: pack.coins } },
+    { $inc: { diamondBalance: pack.diamonds } },
     { new: true }
   );
   if (!user) throw new HttpError(404, "User not found");
@@ -30,12 +30,12 @@ export async function purchasePackage(req: Request, res: Response) {
   await Transaction.create({
     userId: user._id,
     type: "purchase",
-    amount: pack.coins,
-    balanceAfter: user.coinBalance,
+    amount: pack.diamonds,
+    balanceAfter: user.diamondBalance,
     meta: { packageId: pack.id, priceInr: pack.priceInr },
   });
 
-  res.status(201).json({ coinBalance: user.coinBalance, purchased: pack });
+  res.status(201).json({ diamondBalance: user.diamondBalance, purchased: pack });
 }
 
 export async function listTransactions(req: Request, res: Response) {

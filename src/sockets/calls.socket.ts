@@ -4,7 +4,7 @@ import { CallLog } from "../models/CallLog";
 import { User } from "../models/User";
 import { Partner } from "../models/Partner";
 import { Transaction } from "../models/Transaction";
-import { COINS_PER_MINUTE_CALL } from "../config/coinPackages";
+import { DIAMONDS_PER_MINUTE_CALL } from "../config/diamondPackages";
 import { HttpError } from "../common/utils/HttpError";
 import { ActorRole } from "../common/utils/jwt";
 import { generateAgoraToken, uidFromId } from "../common/utils/agora";
@@ -26,8 +26,8 @@ export function registerCallHandlers(io: Server, socket: Socket, actor: Actor) {
 
       const caller = await User.findById(actor.id);
       if (!caller) throw new HttpError(404, "User not found");
-      if (caller.coinBalance < COINS_PER_MINUTE_CALL) {
-        throw new HttpError(402, "Insufficient coin balance to start a call");
+      if (caller.diamondBalance < DIAMONDS_PER_MINUTE_CALL) {
+        throw new HttpError(402, "Insufficient diamond balance to start a call");
       }
 
       const call = await CallLog.create({
@@ -118,30 +118,30 @@ export function registerCallHandlers(io: Server, socket: Socket, actor: Actor) {
       const endedAt = new Date();
       const durationSeconds = Math.max(1, Math.round((endedAt.getTime() - call.acceptedAt!.getTime()) / 1000));
       const minutesBilled = Math.ceil(durationSeconds / 60);
-      const fullCost = minutesBilled * COINS_PER_MINUTE_CALL;
-      const coinsCharged = Math.min(fullCost, caller.coinBalance);
+      const fullCost = minutesBilled * DIAMONDS_PER_MINUTE_CALL;
+      const diamondsCharged = Math.min(fullCost, caller.diamondBalance);
 
-      caller.coinBalance -= coinsCharged;
+      caller.diamondBalance -= diamondsCharged;
       await caller.save();
 
       await Transaction.create({
         userId: caller._id,
         type: "call_deduction",
-        amount: -coinsCharged,
-        balanceAfter: caller.coinBalance,
+        amount: -diamondsCharged,
+        balanceAfter: caller.diamondBalance,
         meta: { callId: call._id, type: call.type, durationSeconds },
       });
 
       call.status = "completed";
       call.endedAt = endedAt;
       call.durationSeconds = durationSeconds;
-      call.coinsCharged = coinsCharged;
+      call.diamondsCharged = diamondsCharged;
       await call.save();
 
       io.to(room("partner", String(call.partnerId))).emit("call:ended", { callId: call._id, durationSeconds });
       io.to(room("user", String(call.callerId))).emit("call:ended", { callId: call._id, durationSeconds });
 
-      ack?.({ call, coinBalance: caller.coinBalance });
+      ack?.({ call, diamondBalance: caller.diamondBalance });
     } catch (err) {
       ack?.({ error: err instanceof HttpError ? err.message : "Failed to end call" });
     }

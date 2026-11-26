@@ -10,7 +10,7 @@ export interface IUser extends Document {
   bio?: string;
   avatarUrl?: string;
   imageUrl?: string;
-  coinBalance: number;
+  diamondBalance: number;
   favorites: Types.ObjectId[];
   createdAt: Date;
 }
@@ -25,7 +25,7 @@ const userSchema = new Schema<IUser>(
     bio: { type: String },
     avatarUrl: { type: String },
     imageUrl: { type: String },
-    coinBalance: { type: Number, required: true, default: 100 },
+    diamondBalance: { type: Number, required: true, default: 100 },
     favorites: [{ type: Schema.Types.ObjectId, ref: "Partner", default: [] }],
   },
   { timestamps: { createdAt: true, updatedAt: false } }

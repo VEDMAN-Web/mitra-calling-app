@@ -1,10 +1,18 @@
 import { Schema, model, Document, Types } from "mongoose";
 
+export type MessageType = "text" | "call";
+export type CallMessageStatus = "answered" | "declined";
+
 export interface IMessage extends Document {
   _id: Types.ObjectId;
   conversationId: Types.ObjectId;
   senderRole: "user" | "partner";
-  text: string;
+  type: MessageType;
+  text?: string;
+  call?: {
+    status: CallMessageStatus;
+    durationSeconds?: number;
+  };
   createdAt: Date;
 }
 
@@ -12,7 +20,12 @@ const messageSchema = new Schema<IMessage>(
   {
     conversationId: { type: Schema.Types.ObjectId, ref: "Conversation", required: true, index: true },
     senderRole: { type: String, enum: ["user", "partner"], required: true },
-    text: { type: String, required: true },
+    type: { type: String, enum: ["text", "call"], required: true, default: "text" },
+    text: { type: String },
+    call: {
+      status: { type: String, enum: ["answered", "declined"] },
+      durationSeconds: { type: Number },
+    },
   },
   { timestamps: { createdAt: true, updatedAt: false } }
 );

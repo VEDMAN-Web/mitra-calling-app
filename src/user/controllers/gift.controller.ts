@@ -20,26 +20,26 @@ export async function sendGift(req: Request, res: Response) {
 
   const user = await User.findById(req.userId);
   if (!user) throw new HttpError(404, "User not found");
-  if (user.coinBalance < gift.coins) throw new HttpError(402, "Insufficient coin balance");
+  if (user.diamondBalance < gift.diamonds) throw new HttpError(402, "Insufficient diamond balance");
 
-  user.coinBalance -= gift.coins;
+  user.diamondBalance -= gift.diamonds;
   await user.save();
 
   await Transaction.create({
     userId: user._id,
     type: "gift_sent",
-    amount: -gift.coins,
-    balanceAfter: user.coinBalance,
+    amount: -gift.diamonds,
+    balanceAfter: user.diamondBalance,
     meta: { giftId: gift.id, partnerId },
   });
 
-  const partnerBonus = Math.round(gift.coins * PARTNER_GIFT_SHARE);
+  const partnerBonus = Math.round(gift.diamonds * PARTNER_GIFT_SHARE);
   await PartnerTransaction.create({
     partnerId: partner._id,
     type: "gift_bonus",
-    amountCoins: partnerBonus,
+    amountDiamonds: partnerBonus,
     meta: { giftId: gift.id, userId: String(user._id) },
   });
 
-  res.status(201).json({ coinBalance: user.coinBalance, gift, partnerBonus });
+  res.status(201).json({ diamondBalance: user.diamondBalance, gift, partnerBonus });
 }

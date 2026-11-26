@@ -1,18 +1,18 @@
 import { Router } from "express";
 import { requireUserAuth } from "../../common/middleware/auth";
 import { asyncHandler } from "../../common/utils/asyncHandler";
-import { getBalance, listPackages, purchasePackage, listTransactions } from "../controllers/coins.controller";
+import { getBalance, listPackages, purchasePackage, listTransactions } from "../controllers/diamonds.controller";
 
 const router = Router();
 router.use(requireUserAuth);
 
 /**
  * @openapi
- * /coins/balance:
+ * /diamonds/balance:
  *   get:
- *     summary: Get my coin balance (wallet header)
- *     description: Returns the authenticated user's current coin balance, as shown in the wallet header on every screen.
- *     tags: [Coins]
+ *     summary: Get my diamond balance (wallet header)
+ *     description: Returns the authenticated user's current diamond balance, as shown in the wallet header on every screen.
+ *     tags: [Diamonds]
  *     responses:
  *       200:
  *         description: Current balance
@@ -21,20 +21,20 @@ router.use(requireUserAuth);
  *             schema:
  *               type: object
  *               properties:
- *                 coinBalance: { type: number }
+ *                 diamondBalance: { type: number }
  */
 router.get("/balance", asyncHandler(getBalance));
 
 /**
  * @openapi
- * /coins/packages:
+ * /diamonds/packages:
  *   get:
- *     summary: List coin packages (Get more coins)
- *     description: Lists the purchasable coin packages shown on the "Get more coins" screen.
- *     tags: [Coins]
+ *     summary: List diamond packages (Get more diamonds)
+ *     description: Lists the purchasable diamond packages shown on the "Get more diamonds" screen.
+ *     tags: [Diamonds]
  *     responses:
  *       200:
- *         description: Available coin packages
+ *         description: Available diamond packages
  *         content:
  *           application/json:
  *             schema:
@@ -42,17 +42,17 @@ router.get("/balance", asyncHandler(getBalance));
  *               properties:
  *                 packages:
  *                   type: array
- *                   items: { $ref: '#/components/schemas/CoinPackage' }
+ *                   items: { $ref: '#/components/schemas/DiamondPackage' }
  */
 router.get("/packages", asyncHandler(listPackages));
 
 /**
  * @openapi
- * /coins/purchase:
+ * /diamonds/purchase:
  *   post:
- *     summary: Purchase a coin package (demo purchase only, no real payment)
- *     description: Credits the user's wallet with the coins from the given package and records a purchase transaction. No real payment is processed.
- *     tags: [Coins]
+ *     summary: Purchase a diamond package (demo purchase only, no real payment)
+ *     description: Credits the user's wallet with the diamonds from the given package and records a purchase transaction. No real payment is processed.
+ *     tags: [Diamonds]
  *     requestBody:
  *       required: true
  *       content:
@@ -72,11 +72,11 @@ router.post("/purchase", asyncHandler(purchasePackage));
 
 /**
  * @openapi
- * /coins/transactions:
+ * /diamonds/transactions:
  *   get:
- *     summary: List my coin transaction history
- *     description: Returns a paginated history of the user's coin transactions (purchases, call deductions, gifts sent, signup bonus).
- *     tags: [Coins]
+ *     summary: List my diamond transaction history
+ *     description: Returns a paginated history of the user's diamond transactions (purchases, call deductions, gifts sent, signup bonus).
+ *     tags: [Diamonds]
  *     parameters:
  *       - in: query
  *         name: page

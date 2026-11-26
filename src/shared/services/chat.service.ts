@@ -1,7 +1,13 @@
 import { Types } from "mongoose";
 import { Conversation, IConversation } from "../../models/Conversation";
-import { Message, IMessage } from "../../models/Message";
+import { Message, IMessage, CallMessageStatus } from "../../models/Message";
 import { HttpError } from "../../common/utils/HttpError";
+
+function formatDuration(durationSeconds: number): string {
+  const minutes = Math.floor(durationSeconds / 60);
+  const seconds = durationSeconds % 60;
+  return `${minutes}:${String(seconds).padStart(2, "0")}`;
+}
 
 export interface Actor {
   id: string;
@@ -45,7 +51,31 @@ export async function postMessage(
     text: trimmed,
   });
 
-  conversation.lastMessage = { text: message.text, senderRole: actor.role, createdAt: message.createdAt };
+  conversation.lastMessage = { text: message.text!, senderRole: actor.role, createdAt: message.createdAt };
+  if (actor.role === "user") conversation.userLastReadAt = message.createdAt;
+  else conversation.partnerLastReadAt = message.createdAt;
+  await conversation.save();
+
+  return { conversation, message };
+}
+
+export async function postCallLogMessage(
+  conversationId: string,
+  actor: Actor,
+  status: CallMessageStatus,
+  durationSeconds?: number
+): Promise<{ conversation: IConversation; message: IMessage }> {
+  const conversation = await assertParticipant(conversationId, actor);
+
+  const message = await Message.create({
+    conversationId: conversation._id,
+    senderRole: actor.role,
+    type: "call",
+    call: status === "answered" ? { status, durationSeconds } : { status },
+  });
+
+  const summaryText = status === "answered" ? `Call ended - ${formatDuration(durationSeconds!)}` : "Call declined";
+  conversation.lastMessage = { text: summaryText, senderRole: actor.role, createdAt: message.createdAt };
   if (actor.role === "user") conversation.userLastReadAt = message.createdAt;
   else conversation.partnerLastReadAt = message.createdAt;
   await conversation.save();

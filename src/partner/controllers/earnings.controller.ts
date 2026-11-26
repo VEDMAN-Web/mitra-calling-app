@@ -17,7 +17,7 @@ export async function getDashboard(req: Request, res: Response) {
   const attendance = await Attendance.findOne({ partnerId, date: today });
   const giftBonusAgg = await PartnerTransaction.aggregate([
     { $match: { partnerId: new Types.ObjectId(partnerId), createdAt: { $gte: startOfDay } } },
-    { $group: { _id: null, total: { $sum: "$amountCoins" } } },
+    { $group: { _id: null, total: { $sum: "$amountDiamonds" } } },
   ]);
   const callsToday = await CallLog.find({
     partnerId,
@@ -53,7 +53,7 @@ export async function getPayoutSummary(req: Request, res: Response) {
         createdAt: { $gte: startOfDay, $lte: endOfDay },
       },
     },
-    { $group: { _id: null, total: { $sum: "$amountCoins" } } },
+    { $group: { _id: null, total: { $sum: "$amountDiamonds" } } },
   ]);
   const calls = await CallLog.find({
     partnerId,

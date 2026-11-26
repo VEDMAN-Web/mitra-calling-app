@@ -1,9 +1,11 @@
 import { Request, Response } from "express";
+import { Types } from "mongoose";
 import { Conversation } from "../../models/Conversation";
 import { Message } from "../../models/Message";
 import { User } from "../../models/User";
 import { Partner } from "../../models/Partner";
-import { assertParticipant } from "../services/chat.service";
+import { HttpError } from "../../common/utils/HttpError";
+import { assertParticipant, getOrCreateConversation, postCallLogMessage } from "../services/chat.service";
 
 export async function listConversations(req: Request, res: Response) {
   const actor = req.actor!;
@@ -64,4 +66,31 @@ export async function getMessages(req: Request, res: Response) {
   await conversation.save();
 
   res.json({ page, limit, messages: messages.reverse() });
+}
+
+export async function logCall(req: Request, res: Response) {
+  const actor = req.actor! as { id: string; role: "user" | "partner" };
+  const partnerId = String(req.params.partnerId);
+  if (!Types.ObjectId.isValid(partnerId)) throw new HttpError(400, "Invalid partner id");
+
+  const { status, durationSeconds } = req.body as { status?: string; durationSeconds?: number };
+  if (status !== "answer" && status !== "reject") {
+    throw new HttpError(400, "status must be 'answer' or 'reject'");
+  }
+  if (status === "answer" && !(Number(durationSeconds) >= 0)) {
+    throw new HttpError(400, "durationSeconds is required when status is 'answer'");
+  }
+
+  const partner = await Partner.findById(partnerId);
+  if (!partner) throw new HttpError(404, "Partner not found");
+
+  const conversation = await getOrCreateConversation(actor.id, partnerId);
+  const { message } = await postCallLogMessage(
+    String(conversation._id),
+    actor,
+    status === "answer" ? "answered" : "declined",
+    status === "answer" ? Number(durationSeconds) : undefined
+  );
+
+  res.status(201).json({ conversationId: conversation._id, message });
 }
