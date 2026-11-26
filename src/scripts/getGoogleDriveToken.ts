@@ -1,7 +1,7 @@
 import "dotenv/config";
 import http from "http";
 import { URL } from "url";
-import { getDriveOAuthClient } from "../utils/googleDrive";
+import { getDriveOAuthClient } from "../common/utils/googleDrive";
 
 const PORT = 53682;
 const REDIRECT_URI = `http://localhost:${PORT}`;

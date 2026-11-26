@@ -1,5 +1,5 @@
 import swaggerJsdoc from "swagger-jsdoc";
-import { securitySchemes, schemas } from "./components";
+import { securitySchemes, schemas } from "../../swagger/components";
 
 const routesDir = `${__dirname.replace(/\\/g, "/")}/../routes`;
 
@@ -41,7 +41,14 @@ Sending via \`POST /partners/chats/{conversationId}/messages\` also triggers a \
     components: { securitySchemes, schemas },
     security: [{ bearerAuth: [] }],
   },
-  apis: [`${routesDir}/partner.routes.{ts,js}`],
+  apis: [
+    `${routesDir}/auth.routes.{ts,js}`,
+    `${routesDir}/profile.routes.{ts,js}`,
+    `${routesDir}/attendance.routes.{ts,js}`,
+    `${routesDir}/earnings.routes.{ts,js}`,
+    `${routesDir}/calls.routes.{ts,js}`,
+    `${routesDir}/chat.routes.{ts,js}`,
+  ],
 });
 
 export default spec;

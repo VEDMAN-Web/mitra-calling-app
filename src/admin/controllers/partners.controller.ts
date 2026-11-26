@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { Partner } from "../models/Partner";
-import { HttpError } from "../utils/HttpError";
+import { Partner } from "../../models/Partner";
+import { HttpError } from "../../common/utils/HttpError";
 
 export async function listPendingPartners(_req: Request, res: Response) {
   const partners = await Partner.find({ verificationStatus: "in_review" }).sort({ createdAt: 1 });

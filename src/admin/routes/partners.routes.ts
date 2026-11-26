@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { requireAdmin } from "../middleware/auth";
-import { asyncHandler } from "../utils/asyncHandler";
-import { listPendingPartners, approvePartner, rejectPartner } from "../controllers/admin.controller";
+import { requireAdmin } from "../../common/middleware/auth";
+import { asyncHandler } from "../../common/utils/asyncHandler";
+import { listPendingPartners, approvePartner, rejectPartner } from "../controllers/partners.controller";
 
 const router = Router();
 router.use(requireAdmin);

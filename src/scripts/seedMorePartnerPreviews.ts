@@ -2,7 +2,7 @@ import "dotenv/config";
 import path from "path";
 import mongoose from "mongoose";
 import { Partner } from "../models/Partner";
-import { uploadPreviewVideo, deleteDriveFile, extractDriveFileId } from "../utils/googleDrive";
+import { uploadPreviewVideo, deleteDriveFile, extractDriveFileId } from "../common/utils/googleDrive";
 
 const VIDEOS_DIR = "C:\\Users\\ASD\\Downloads\\15 videos - Compressed";
 

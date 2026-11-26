@@ -1,6 +1,6 @@
 import swaggerJsdoc from "swagger-jsdoc";
-import { securitySchemes, schemas } from "./components";
-import { dropTag } from "./filterByTag";
+import { securitySchemes, schemas } from "../../swagger/components";
+import { dropTag } from "../../swagger/filterByTag";
 
 const routesDir = `${__dirname.replace(/\\/g, "/")}/../routes`;
 
@@ -45,8 +45,9 @@ Sending via \`POST /chats/{conversationId}/messages\` also triggers a \`message:
   },
   apis: [
     `${routesDir}/auth.routes.{ts,js}`,
-    `${routesDir}/user.routes.{ts,js}`,
+    `${routesDir}/profile.routes.{ts,js}`,
     `${routesDir}/discover.routes.{ts,js}`,
+    `${routesDir}/gift.routes.{ts,js}`,
     `${routesDir}/chat.routes.{ts,js}`,
     `${routesDir}/coins.routes.{ts,js}`,
     `${routesDir}/calls.routes.{ts,js}`,

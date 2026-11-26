@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { requireUserAuth } from "../middleware/auth";
-import { asyncHandler } from "../utils/asyncHandler";
+import { requireUserAuth } from "../../common/middleware/auth";
+import { asyncHandler } from "../../common/utils/asyncHandler";
 import { getBalance, listPackages, purchasePackage, listTransactions } from "../controllers/coins.controller";
 
 const router = Router();

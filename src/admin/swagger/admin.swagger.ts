@@ -1,8 +1,9 @@
 import swaggerJsdoc from "swagger-jsdoc";
-import { securitySchemes, schemas } from "./components";
-import { keepTag } from "./filterByTag";
+import { securitySchemes, schemas } from "../../swagger/components";
+import { keepTag } from "../../swagger/filterByTag";
 
 const routesDir = `${__dirname.replace(/\\/g, "/")}/../routes`;
+const userRoutesDir = `${__dirname.replace(/\\/g, "/")}/../../user/routes`;
 
 const spec = swaggerJsdoc({
   definition: {
@@ -16,7 +17,7 @@ const spec = swaggerJsdoc({
     components: { securitySchemes, schemas },
     security: [{ bearerAuth: [] }],
   },
-  apis: [`${routesDir}/auth.routes.{ts,js}`, `${routesDir}/admin.routes.{ts,js}`],
+  apis: [`${userRoutesDir}/auth.routes.{ts,js}`, `${routesDir}/partners.routes.{ts,js}`],
 }) as any;
 
 export default keepTag(spec, "Admin");

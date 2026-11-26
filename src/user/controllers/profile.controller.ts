@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import { User, IUser } from "../models/User";
-import { HttpError } from "../utils/HttpError";
-import { uploadedUserFileUrl, deleteUserImage } from "../config/upload";
+import { User, IUser } from "../../models/User";
+import { HttpError } from "../../common/utils/HttpError";
+import { uploadedUserFileUrl, deleteUserImage } from "../../config/upload";
 
 function toClientUser(user: IUser) {
   const fileBaseUrl = process.env.FILE_BASE_URL || "";

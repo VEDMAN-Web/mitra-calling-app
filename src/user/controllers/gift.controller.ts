@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
 import { Types } from "mongoose";
-import { User } from "../models/User";
-import { Partner } from "../models/Partner";
-import { Transaction } from "../models/Transaction";
-import { PartnerTransaction } from "../models/PartnerTransaction";
-import { GIFTS, PARTNER_GIFT_SHARE } from "../config/gifts";
-import { HttpError } from "../utils/HttpError";
+import { User } from "../../models/User";
+import { Partner } from "../../models/Partner";
+import { Transaction } from "../../models/Transaction";
+import { PartnerTransaction } from "../../models/PartnerTransaction";
+import { GIFTS, PARTNER_GIFT_SHARE } from "../../config/gifts";
+import { HttpError } from "../../common/utils/HttpError";
 
 export async function sendGift(req: Request, res: Response) {
   const partnerId = String(req.params.partnerId);

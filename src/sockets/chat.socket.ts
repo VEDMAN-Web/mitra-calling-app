@@ -1,8 +1,8 @@
 import { Server as HttpServer } from "http";
 import { Server, Socket } from "socket.io";
-import { verifyToken, ActorRole } from "../utils/jwt";
-import { postMessage } from "../services/chat.service";
-import { HttpError } from "../utils/HttpError";
+import { verifyToken, ActorRole } from "../common/utils/jwt";
+import { postMessage } from "../shared/services/chat.service";
+import { HttpError } from "../common/utils/HttpError";
 import { room } from "./rooms";
 import { registerCallHandlers } from "./calls.socket";
 

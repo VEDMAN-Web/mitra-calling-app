@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
-import { Conversation } from "../models/Conversation";
-import { Message } from "../models/Message";
-import { User } from "../models/User";
-import { Partner } from "../models/Partner";
+import { Conversation } from "../../models/Conversation";
+import { Message } from "../../models/Message";
+import { User } from "../../models/User";
+import { Partner } from "../../models/Partner";
 import { assertParticipant } from "../services/chat.service";
 
 export async function listConversations(req: Request, res: Response) {

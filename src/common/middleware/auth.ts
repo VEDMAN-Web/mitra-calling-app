@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { verifyToken } from "../utils/jwt";
 import { HttpError } from "../utils/HttpError";
-import { isTokenBlacklisted } from "../services/tokenBlacklist.service";
+import { isTokenBlacklisted } from "../../shared/services/tokenBlacklist.service";
 
 function extractToken(req: Request): string {
   const header = req.headers.authorization;

@@ -1,4 +1,4 @@
-import { BlacklistedToken } from "../models/BlacklistedToken";
+import { BlacklistedToken } from "../../models/BlacklistedToken";
 
 export async function blacklistToken(token: string, expiresAt: Date): Promise<void> {
   await BlacklistedToken.updateOne({ token }, { $set: { expiresAt } }, { upsert: true });

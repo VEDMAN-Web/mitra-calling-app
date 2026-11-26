@@ -1,7 +1,8 @@
 import { Router } from "express";
-import { asyncHandler } from "../utils/asyncHandler";
-import { createGuest, /* requestOtp, verifyOtp, */ requestEmailOtp, resendEmailOtp, verifyEmailOtp, adminLogin, logout } from "../controllers/auth.controller";
-import { requireAuth } from "../middleware/auth";
+import { asyncHandler } from "../../common/utils/asyncHandler";
+import { createGuest, /* requestOtp, verifyOtp, */ requestEmailOtp, resendEmailOtp, verifyEmailOtp, logout } from "../controllers/auth.controller";
+import { adminLogin } from "../../admin/controllers/auth.controller";
+import { requireAuth } from "../../common/middleware/auth";
 
 const router = Router();
 

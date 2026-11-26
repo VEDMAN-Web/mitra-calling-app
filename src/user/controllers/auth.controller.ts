@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
-import { User } from "../models/User";
-import { Transaction } from "../models/Transaction";
-import { signToken, getTokenExpiry } from "../utils/jwt";
-import { HttpError } from "../utils/HttpError";
-import { requestOtpForPhone, verifyOtpForPhone, requestOtpForEmail, verifyOtpForEmail } from "../services/otp.service";
-import { blacklistToken } from "../services/tokenBlacklist.service";
+import { User } from "../../models/User";
+import { Transaction } from "../../models/Transaction";
+import { signToken, getTokenExpiry } from "../../common/utils/jwt";
+import { HttpError } from "../../common/utils/HttpError";
+import { requestOtpForPhone, verifyOtpForPhone, requestOtpForEmail, verifyOtpForEmail } from "../../shared/services/otp.service";
+import { blacklistToken } from "../../shared/services/tokenBlacklist.service";
 
 const SIGNUP_BONUS_COINS = 100;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -119,22 +119,6 @@ export async function verifyEmailOtp(req: Request, res: Response) {
 
   const token = signToken(String(user._id), "user");
   res.json({ token, user, isNewUser });
-}
-
-export async function adminLogin(req: Request, res: Response) {
-  const { email, password } = req.body as { email?: string; password?: string };
-  if (!email || !password) {
-    throw new HttpError(400, "email and password are required");
-  }
-
-  const adminEmail = process.env.ADMIN_EMAIL;
-  const adminPassword = process.env.ADMIN_PASSWORD;
-  if (!adminEmail || !adminPassword || email !== adminEmail || password !== adminPassword) {
-    throw new HttpError(401, "Invalid admin credentials");
-  }
-
-  const token = signToken(adminEmail, "admin");
-  res.json({ token });
 }
 
 export async function logout(req: Request, res: Response) {

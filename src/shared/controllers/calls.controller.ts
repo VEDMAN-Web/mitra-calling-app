@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { CallLog } from "../models/CallLog";
+import { CallLog } from "../../models/CallLog";
 
 export async function listCallHistory(req: Request, res: Response) {
   const actor = req.actor!;

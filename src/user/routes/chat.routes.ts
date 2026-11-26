@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { requireUserAuth } from "../middleware/auth";
-import { asyncHandler } from "../utils/asyncHandler";
-import { listConversations, getMessages } from "../controllers/chat.controller";
+import { requireUserAuth } from "../../common/middleware/auth";
+import { asyncHandler } from "../../common/utils/asyncHandler";
+import { listConversations, getMessages } from "../../shared/controllers/chat.controller";
 
 const router = Router();
 router.use(requireUserAuth);

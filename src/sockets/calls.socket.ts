@@ -5,9 +5,9 @@ import { User } from "../models/User";
 import { Partner } from "../models/Partner";
 import { Transaction } from "../models/Transaction";
 import { COINS_PER_MINUTE_CALL } from "../config/coinPackages";
-import { HttpError } from "../utils/HttpError";
-import { ActorRole } from "../utils/jwt";
-import { generateAgoraToken, uidFromId } from "../utils/agora";
+import { HttpError } from "../common/utils/HttpError";
+import { ActorRole } from "../common/utils/jwt";
+import { generateAgoraToken, uidFromId } from "../common/utils/agora";
 import { room } from "./rooms";
 
 type Actor = { id: string; role: ActorRole };

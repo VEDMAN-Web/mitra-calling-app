@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
-import { User } from "../models/User";
-import { Transaction } from "../models/Transaction";
-import { COIN_PACKAGES } from "../config/coinPackages";
-import { HttpError } from "../utils/HttpError";
+import { User } from "../../models/User";
+import { Transaction } from "../../models/Transaction";
+import { COIN_PACKAGES } from "../../config/coinPackages";
+import { HttpError } from "../../common/utils/HttpError";
 
 export async function getBalance(req: Request, res: Response) {
   const user = await User.findById(req.userId).select("coinBalance");

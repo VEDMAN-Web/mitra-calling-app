@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
 import { Types } from "mongoose";
-import { User } from "../models/User";
-import { Partner } from "../models/Partner";
-import { getOrCreateConversation, postMessage } from "../services/chat.service";
-import { broadcastNewMessage } from "../sockets/chat.socket";
-import { HttpError } from "../utils/HttpError";
+import { User } from "../../models/User";
+import { Partner } from "../../models/Partner";
+import { getOrCreateConversation, postMessage } from "../../shared/services/chat.service";
+import { broadcastNewMessage } from "../../sockets/chat.socket";
+import { HttpError } from "../../common/utils/HttpError";
 
 const DEFAULT_GREETING = "Hey! Nice to meet you 😊";
 

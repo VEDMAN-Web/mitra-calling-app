@@ -5,10 +5,10 @@ import express from "express";
 import swaggerUi from "swagger-ui-express";
 import { connectDB } from "./config/db";
 import apiRoutes from "./routes";
-import userSwaggerSpec from "./swagger/user";
-import partnerSwaggerSpec from "./swagger/partner";
-import adminSwaggerSpec from "./swagger/admin";
-import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
+import userSwaggerSpec from "./user/swagger/user.swagger";
+import partnerSwaggerSpec from "./partner/swagger/partner.swagger";
+import adminSwaggerSpec from "./admin/swagger/admin.swagger";
+import { errorHandler, notFoundHandler } from "./common/middleware/errorHandler";
 import { initChatSocket } from "./sockets/chat.socket";
 import { UPLOADS_ROOT } from "./config/upload";
 

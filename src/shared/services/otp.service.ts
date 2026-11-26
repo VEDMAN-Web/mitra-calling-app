@@ -1,5 +1,5 @@
-import { Otp } from "../models/Otp";
-import { HttpError } from "../utils/HttpError";
+import { Otp } from "../../models/Otp";
+import { HttpError } from "../../common/utils/HttpError";
 
 const OTP_TTL_MINUTES = 5;
 const EMAIL_DUMMY_OTP = "123456";

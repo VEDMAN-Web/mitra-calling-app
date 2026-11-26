@@ -1,7 +1,7 @@
 import { Types } from "mongoose";
-import { Conversation, IConversation } from "../models/Conversation";
-import { Message, IMessage } from "../models/Message";
-import { HttpError } from "../utils/HttpError";
+import { Conversation, IConversation } from "../../models/Conversation";
+import { Message, IMessage } from "../../models/Message";
+import { HttpError } from "../../common/utils/HttpError";
 
 export interface Actor {
   id: string;

@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { requireUserAuth } from "../middleware/auth";
-import { asyncHandler } from "../utils/asyncHandler";
-import { listCallHistory } from "../controllers/calls.controller";
+import { requireUserAuth } from "../../common/middleware/auth";
+import { asyncHandler } from "../../common/utils/asyncHandler";
+import { listCallHistory } from "../../shared/controllers/calls.controller";
 
 const router = Router();
 

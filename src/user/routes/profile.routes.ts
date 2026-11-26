@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { requireAuth, requireUserAuth } from "../middleware/auth";
-import { asyncHandler } from "../utils/asyncHandler";
-import { uploadUserImage } from "../config/upload";
-import { getMe, updateMe, getUserById } from "../controllers/user.controller";
+import { requireAuth, requireUserAuth } from "../../common/middleware/auth";
+import { asyncHandler } from "../../common/utils/asyncHandler";
+import { uploadUserImage } from "../../config/upload";
+import { getMe, updateMe, getUserById } from "../controllers/profile.controller";
 
 const router = Router();
 
