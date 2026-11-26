@@ -2,11 +2,10 @@ import { Types } from "mongoose";
 import { Conversation, IConversation } from "../models/Conversation";
 import { Message, IMessage } from "../models/Message";
 import { HttpError } from "../utils/HttpError";
-import { ActorRole } from "../utils/jwt";
 
 export interface Actor {
   id: string;
-  role: ActorRole;
+  role: "user" | "partner";
 }
 
 export async function assertParticipant(conversationId: string, actor: Actor): Promise<IConversation> {

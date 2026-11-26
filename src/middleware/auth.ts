@@ -54,11 +54,16 @@ export async function requirePartnerAuth(req: Request, _res: Response, next: Nex
   }
 }
 
-export function requireAdmin(req: Request, _res: Response, next: NextFunction) {
-  const key = req.headers["x-admin-key"];
-  const expected = process.env.ADMIN_API_KEY;
-  if (!expected || key !== expected) {
-    throw new HttpError(401, "Invalid admin key");
+export async function requireAdmin(req: Request, _res: Response, next: NextFunction) {
+  try {
+    const token = extractToken(req);
+    const payload = verifyToken(token);
+    if (payload.role !== "admin") throw new Error("wrong role");
+    if (await isTokenBlacklisted(token)) throw new Error("token blacklisted");
+    req.token = token;
+    req.actor = { id: payload.sub, role: "admin" };
+    next();
+  } catch {
+    throw new HttpError(401, "Invalid or expired token");
   }
-  next();
 }

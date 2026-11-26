@@ -39,7 +39,11 @@ export function initChatSocket(httpServer: HttpServer): Server {
           const { conversationId, text } = payload || {};
           if (!conversationId || !text) throw new HttpError(400, "conversationId and text are required");
 
-          const { conversation, message } = await postMessage(conversationId, actor, text);
+          const { conversation, message } = await postMessage(
+            conversationId,
+            actor as { id: string; role: "user" | "partner" },
+            text
+          );
 
           io!.to(room("user", String(conversation.userId))).emit("message:new", {
             conversationId: String(conversation._id),

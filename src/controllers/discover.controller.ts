@@ -12,23 +12,42 @@ function toAbsoluteUrl(baseUrl: string, path?: string): string | undefined {
   return path ? `${baseUrl}${path}` : undefined;
 }
 
+function toAbsoluteUrls(baseUrl: string, paths?: string[]): string[] | undefined {
+  return paths?.map((p) => `${baseUrl}${p}`);
+}
+
 export async function listDiscoverFeed(req: Request, res: Response) {
-  const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(50, Number(req.query.limit) || 10);
 
   const me = await User.findById(req.userId).select("favorites");
   const favorites = new Set((me?.favorites || []).map((id) => String(id)));
 
-  const partners = await Partner.find({ verificationStatus: "approved" })
-    .select("name age bio avatarUrl selfieImageUrl previewUrl languages isOnline")
-    .skip((page - 1) * limit)
-    .limit(limit)
-    .sort({ createdAt: -1 });
+  const filter: Record<string, unknown> = { verificationStatus: "approved" };
+  if (req.query.isVip === "true") filter.isVip = true;
+  else if (req.query.isVip === "false") filter.isVip = false;
+
+  const partners = await Partner.aggregate([
+    { $match: filter },
+    { $sample: { size: limit } },
+    {
+      $project: {
+        name: 1,
+        age: 1,
+        bio: 1,
+        avatarUrl: 1,
+        assets: 1,
+        selfieImageUrl: 1,
+        previewUrl: 1,
+        languages: 1,
+        isOnline: 1,
+        isVip: 1,
+      },
+    },
+  ]);
 
   const fileBaseUrl = process.env.FILE_BASE_URL || "";
 
   res.json({
-    page,
     limit,
     profiles: partners.map((p) => ({
       id: p._id,
@@ -36,13 +55,58 @@ export async function listDiscoverFeed(req: Request, res: Response) {
       age: p.age,
       bio: p.bio,
       avatarUrl: p.avatarUrl,
+      assets: toAbsoluteUrls(fileBaseUrl, p.assets),
       selfieImageUrl: toAbsoluteUrl(fileBaseUrl, p.selfieImageUrl),
       previewUrl: p.previewUrl,
       languages: p.languages,
       isOnline: p.isOnline,
+      isVip: p.isVip,
       isFavorited: favorites.has(String(p._id)),
     })),
   });
+}
+
+export async function getDiscoverProfile(req: Request, res: Response) {
+  const partnerId = String(req.params.id);
+  if (!Types.ObjectId.isValid(partnerId)) throw new HttpError(400, "Invalid partner id");
+
+  const me = await User.findById(req.userId).select("favorites");
+  const favorites = new Set((me?.favorites || []).map((id) => String(id)));
+
+  const partner = await Partner.findOne({ _id: partnerId, verificationStatus: "approved" }).select(
+    "name age bio avatarUrl assets selfieImageUrl previewUrl languages isOnline isVip createdAt"
+  );
+  if (!partner) throw new HttpError(404, "Partner not found");
+
+  const fileBaseUrl = process.env.FILE_BASE_URL || "";
+
+  res.json({
+    profile: {
+      id: partner._id,
+      name: partner.name,
+      age: partner.age,
+      bio: partner.bio,
+      avatarUrl: partner.avatarUrl,
+      assets: toAbsoluteUrls(fileBaseUrl, partner.assets),
+      selfieImageUrl: toAbsoluteUrl(fileBaseUrl, partner.selfieImageUrl),
+      previewUrl: partner.previewUrl,
+      languages: partner.languages,
+      isOnline: partner.isOnline,
+      isVip: partner.isVip,
+      isFavorited: favorites.has(String(partner._id)),
+      createdAt: partner.createdAt,
+    },
+  });
+}
+
+export async function getPartnerVideos(req: Request, res: Response) {
+  const partnerId = String(req.params.partnerId);
+  if (!Types.ObjectId.isValid(partnerId)) throw new HttpError(400, "Invalid partner id");
+
+  const partner = await Partner.findById(partnerId).select("videos");
+  if (!partner) throw new HttpError(404, "Partner not found");
+
+  res.json({ _id: partner._id, videos: partner.videos });
 }
 
 export async function toggleFavorite(req: Request, res: Response) {

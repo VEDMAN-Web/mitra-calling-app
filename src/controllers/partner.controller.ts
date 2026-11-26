@@ -194,6 +194,34 @@ export async function uploadPreviewVideo(req: Request, res: Response) {
   res.status(201).json({ partner });
 }
 
+export async function addVideo(req: Request, res: Response) {
+  const file = req.file;
+  if (!file) throw new HttpError(400, "video file is required");
+
+  const partner = await Partner.findById(req.actor!.id).select("videos");
+  if (!partner) {
+    await fs.promises.unlink(file.path).catch(() => {});
+    throw new HttpError(404, "Partner not found");
+  }
+
+  if ((partner.videos?.length ?? 0) >= 3) {
+    await fs.promises.unlink(file.path).catch(() => {});
+    throw new HttpError(409, "Already have the maximum of 3 videos");
+  }
+
+  let videoUrl: string;
+  try {
+    videoUrl = await uploadPreviewVideoToDrive(file.path, file.originalname, file.mimetype, String(partner._id));
+  } finally {
+    await fs.promises.unlink(file.path).catch(() => {});
+  }
+
+  partner.videos = [...(partner.videos ?? []), videoUrl];
+  await partner.save();
+
+  res.status(201).json({ partner });
+}
+
 export async function submitVerification(req: Request, res: Response) {
   const { idType, age, name } = req.body as { idType?: IdDocumentType; age?: string | number; name?: string };
   const files = req.files as { [field: string]: Express.Multer.File[] } | undefined;

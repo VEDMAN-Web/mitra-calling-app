@@ -48,7 +48,7 @@ export async function listConversations(req: Request, res: Response) {
 }
 
 export async function getMessages(req: Request, res: Response) {
-  const actor = req.actor!;
+  const actor = req.actor! as { id: string; role: "user" | "partner" };
   const conversation = await assertParticipant(String(req.params.conversationId), actor);
 
   const page = Math.max(1, Number(req.query.page) || 1);

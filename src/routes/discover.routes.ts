@@ -1,7 +1,14 @@
 import { Router } from "express";
 import { requireUserAuth } from "../middleware/auth";
 import { asyncHandler } from "../utils/asyncHandler";
-import { listDiscoverFeed, toggleFavorite, listFavorites, sayHello } from "../controllers/discover.controller";
+import {
+  listDiscoverFeed,
+  getDiscoverProfile,
+  getPartnerVideos,
+  toggleFavorite,
+  listFavorites,
+  sayHello,
+} from "../controllers/discover.controller";
 import { sendGift } from "../controllers/gift.controller";
 
 const router = Router();
@@ -12,20 +19,58 @@ router.use(requireUserAuth);
  * /discover:
  *   get:
  *     summary: List discover feed (approved partner profile cards)
- *     description: Returns a paginated feed of approved partners for the Discover screen. Partners that are not yet approved never appear here.
+ *     description: Returns a randomly shuffled batch of approved partners for the Discover screen. Every call reshuffles. Partners that are not yet approved never appear here.
  *     tags: [Discover]
  *     parameters:
  *       - in: query
- *         name: page
- *         schema: { type: integer, default: 1 }
- *       - in: query
  *         name: limit
  *         schema: { type: integer, default: 10 }
+ *         description: Batch size to return
+ *       - in: query
+ *         name: isVip
+ *         schema: { type: boolean }
+ *         description: Filter to only VIP (true) or non-VIP (false) partners; shuffling is applied within this filtered set
  *     responses:
  *       200:
- *         description: A page of discover profiles
+ *         description: A randomly shuffled batch of discover profiles
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 limit: { type: integer }
+ *                 profiles: { type: array, items: { type: object } }
  */
 router.get("/", asyncHandler(listDiscoverFeed));
+
+/**
+ * @openapi
+ * /discover/{partnerId}/videos:
+ *   get:
+ *     summary: Get a partner's videos
+ *     description: Returns just the partner's id and their uploaded videos list (Google Drive links).
+ *     tags: [Discover]
+ *     parameters:
+ *       - in: path
+ *         name: partnerId
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Partner videos
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 _id: { type: string }
+ *                 videos: { type: array, items: { type: string } }
+ *       400:
+ *         description: Invalid partner id
+ *       404:
+ *         description: Partner not found
+ */
+router.get("/:partnerId/videos", asyncHandler(getPartnerVideos));
 
 /**
  * @openapi
@@ -91,6 +136,28 @@ router.post("/:partnerId/favorite", asyncHandler(toggleFavorite));
  *                       isFavorited: { type: boolean }
  */
 router.get("/favorites", asyncHandler(listFavorites));
+
+/**
+ * @openapi
+ * /discover/{id}:
+ *   get:
+ *     summary: Get full details of a single discover profile
+ *     description: Returns the full profile for one approved partner, for the profile detail screen.
+ *     tags: [Discover]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Full partner profile
+ *       400:
+ *         description: Invalid partner id
+ *       404:
+ *         description: Partner not found (or not approved)
+ */
+router.get("/:id", asyncHandler(getDiscoverProfile));
 
 /**
  * @openapi

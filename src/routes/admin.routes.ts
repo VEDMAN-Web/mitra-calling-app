@@ -13,17 +13,11 @@ router.use(requireAdmin);
  *     summary: List partners awaiting verification review
  *     description: Lists partners whose verificationStatus is in_review, awaiting an admin's approve/reject decision.
  *     tags: [Admin]
- *     security: []
- *     parameters:
- *       - in: header
- *         name: x-admin-key
- *         required: true
- *         schema: { type: string }
  *     responses:
  *       200:
  *         description: Partners with verificationStatus = in_review
  *       401:
- *         description: Invalid admin key
+ *         description: Invalid or expired token
  */
 router.get("/partners/pending", asyncHandler(listPendingPartners));
 
@@ -34,12 +28,7 @@ router.get("/partners/pending", asyncHandler(listPendingPartners));
  *     summary: Approve a partner's verification
  *     description: Sets the partner's verificationStatus to approved, making them eligible to appear in the Discover feed and go online.
  *     tags: [Admin]
- *     security: []
  *     parameters:
- *       - in: header
- *         name: x-admin-key
- *         required: true
- *         schema: { type: string }
  *       - in: path
  *         name: id
  *         required: true
@@ -57,12 +46,7 @@ router.post("/partners/:id/approve", asyncHandler(approvePartner));
  *     summary: Reject a partner's verification
  *     description: Sets the partner's verificationStatus to rejected with an optional reason, which is shown back to the partner.
  *     tags: [Admin]
- *     security: []
  *     parameters:
- *       - in: header
- *         name: x-admin-key
- *         required: true
- *         schema: { type: string }
  *       - in: path
  *         name: id
  *         required: true

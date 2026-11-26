@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { asyncHandler } from "../utils/asyncHandler";
-import { createGuest, /* requestOtp, verifyOtp, */ requestEmailOtp, resendEmailOtp, verifyEmailOtp, logout } from "../controllers/auth.controller";
+import { createGuest, /* requestOtp, verifyOtp, */ requestEmailOtp, resendEmailOtp, verifyEmailOtp, adminLogin, logout } from "../controllers/auth.controller";
 import { requireAuth } from "../middleware/auth";
 
 const router = Router();
@@ -188,5 +188,37 @@ router.post("/email/otp/verify", asyncHandler(verifyEmailOtp));
  *         description: Invalid or expired token
  */
 router.post("/logout", requireAuth, asyncHandler(logout));
+
+/**
+ * @openapi
+ * /auth/admin/login:
+ *   post:
+ *     summary: Admin login
+ *     description: Logs in with the admin credentials configured via ADMIN_EMAIL/ADMIN_PASSWORD env vars and returns a JWT with the admin role, used as a bearer token on /admin/* endpoints.
+ *     tags: [Admin]
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, password]
+ *             properties:
+ *               email: { type: string, example: "admin@mitra.app" }
+ *               password: { type: string, example: "changeme" }
+ *     responses:
+ *       200:
+ *         description: Logged in
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token: { type: string }
+ *       401:
+ *         description: Invalid admin credentials
+ */
+router.post("/admin/login", asyncHandler(adminLogin));
 
 export default router;

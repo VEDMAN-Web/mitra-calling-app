@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 const JWT_SECRET = process.env.JWT_SECRET || "dev_secret_change_me";
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "30d";
 
-export type ActorRole = "user" | "partner";
+export type ActorRole = "user" | "partner" | "admin";
 
 export interface TokenPayload {
   sub: string;

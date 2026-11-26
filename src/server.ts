@@ -7,6 +7,7 @@ import { connectDB } from "./config/db";
 import apiRoutes from "./routes";
 import userSwaggerSpec from "./swagger/user";
 import partnerSwaggerSpec from "./swagger/partner";
+import adminSwaggerSpec from "./swagger/admin";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 import { initChatSocket } from "./sockets/chat.socket";
 import { UPLOADS_ROOT } from "./config/upload";
@@ -23,6 +24,7 @@ app.get("/health", (_req, res) => {
 app.use("/uploads", express.static(UPLOADS_ROOT));
 app.use("/user/api-docs", swaggerUi.serveFiles(userSwaggerSpec), swaggerUi.setup(userSwaggerSpec));
 app.use("/partner/api-docs", swaggerUi.serveFiles(partnerSwaggerSpec), swaggerUi.setup(partnerSwaggerSpec));
+app.use("/admin/api-docs", swaggerUi.serveFiles(adminSwaggerSpec), swaggerUi.setup(adminSwaggerSpec));
 app.use("/api", apiRoutes);
 
 app.use(notFoundHandler);

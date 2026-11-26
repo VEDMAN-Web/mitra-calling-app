@@ -1,5 +1,6 @@
 import swaggerJsdoc from "swagger-jsdoc";
 import { securitySchemes, schemas } from "./components";
+import { dropTag } from "./filterByTag";
 
 const routesDir = `${__dirname.replace(/\\/g, "/")}/../routes`;
 
@@ -9,7 +10,7 @@ const spec = swaggerJsdoc({
     info: {
       title: "Mitra User API",
       version: "1.0.0",
-      description: `Backend API for the Mitra user app (auth, discover, chat, coins/wallet, calls). For the partner-side API (the people who get called), see /partner/api-docs.
+      description: `Backend API for the Mitra user app (auth, discover, chat, coins/wallet, calls). For the partner-side API (the people who get called), see /partner/api-docs. For admin endpoints, see /admin/api-docs.
 
 ## Real-time events (Socket.io)
 
@@ -50,6 +51,6 @@ Sending via \`POST /chats/{conversationId}/messages\` also triggers a \`message:
     `${routesDir}/coins.routes.{ts,js}`,
     `${routesDir}/calls.routes.{ts,js}`,
   ],
-});
+}) as any;
 
-export default spec;
+export default dropTag(spec, "Admin");

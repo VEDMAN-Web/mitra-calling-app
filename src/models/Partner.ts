@@ -13,8 +13,11 @@ export interface IPartner extends Document {
   languages: string[];
   bio?: string;
   avatarUrl?: string;
+  assets?: string[];
   previewUrl?: string;
+  videos?: string[];
   isOnline: boolean;
+  isVip: boolean;
   verificationStatus: VerificationStatus;
   idDocument?: {
     type: IdDocumentType;
@@ -35,8 +38,23 @@ const partnerSchema = new Schema<IPartner>(
     languages: [{ type: String }],
     bio: { type: String },
     avatarUrl: { type: String },
+    assets: {
+      type: [String],
+      validate: {
+        validator: (arr: string[]) => arr.length <= 5,
+        message: "assets can have at most 5 images",
+      },
+    },
     previewUrl: { type: String },
+    videos: {
+      type: [String],
+      validate: {
+        validator: (arr: string[]) => arr.length <= 3,
+        message: "videos can have at most 3 videos",
+      },
+    },
     isOnline: { type: Boolean, required: true, default: false },
+    isVip: { type: Boolean, required: true, default: false },
     verificationStatus: {
       type: String,
       enum: ["not_submitted", "in_review", "approved", "rejected"],

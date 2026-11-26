@@ -9,9 +9,7 @@ const spec = swaggerJsdoc({
     info: {
       title: "Mitra Partner API",
       version: "1.0.0",
-      description: `Backend API for the Mitra partner app (the people who get called): auth, profile, ID/selfie verification, availability, chats, calls, earnings, and admin approval. For the user-side API, see /user/api-docs.
-
-Admin routes (\`/admin/*\`) use an \`x-admin-key\` header instead of a JWT — there's no admin UI yet, just these endpoints.
+      description: `Backend API for the Mitra partner app (the people who get called): auth, profile, ID/selfie verification, availability, chats, calls, earnings. For the user-side API, see /user/api-docs. For admin endpoints (partner verification review), see /admin/api-docs.
 
 ## Real-time events (Socket.io)
 
@@ -43,7 +41,7 @@ Sending via \`POST /partners/chats/{conversationId}/messages\` also triggers a \
     components: { securitySchemes, schemas },
     security: [{ bearerAuth: [] }],
   },
-  apis: [`${routesDir}/partner.routes.{ts,js}`, `${routesDir}/admin.routes.{ts,js}`],
+  apis: [`${routesDir}/partner.routes.{ts,js}`],
 });
 
 export default spec;

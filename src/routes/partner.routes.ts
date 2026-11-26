@@ -13,6 +13,7 @@ import {
   getMe,
   updateMe,
   uploadPreviewVideo,
+  addVideo,
   submitVerification,
   setAvailability,
   getDashboard,
@@ -259,6 +260,32 @@ router.patch("/me", uploadPartnerDocs.single("avatar"), asyncHandler(updateMe));
  *         description: previewVideo file is required
  */
 router.post("/me/preview-video", uploadPartnerPreviewVideo.single("previewVideo"), asyncHandler(uploadPreviewVideo));
+
+/**
+ * @openapi
+ * /partners/me/videos:
+ *   post:
+ *     summary: Add a video to my profile (max 3)
+ *     description: Uploads a video clip and appends it to the partner's videos list, stored in this partner's folder in Google Drive. Fails with 409 once the partner already has 3 videos.
+ *     tags: [Partner Profile]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required: [video]
+ *             properties:
+ *               video: { type: string, format: binary }
+ *     responses:
+ *       201:
+ *         description: Video added
+ *       400:
+ *         description: video file is required
+ *       409:
+ *         description: Already have the maximum of 3 videos
+ */
+router.post("/me/videos", uploadPartnerPreviewVideo.single("video"), asyncHandler(addVideo));
 
 /**
  * @openapi
