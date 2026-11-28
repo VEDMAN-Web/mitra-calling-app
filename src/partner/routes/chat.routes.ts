@@ -11,11 +11,27 @@ router.use(requirePartnerAuth);
  * /partners/chats:
  *   get:
  *     summary: List my conversations (Partner Chats screen)
- *     description: Lists the authenticated partner's conversations with users, including each one's last message and unread count.
+ *     description: Lists the authenticated partner's conversations with users, including each one's last message and unread count, most recently active first.
  *     tags: [Partner Chats]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 10 }
  *     responses:
  *       200:
- *         description: Conversations with last message and unread count
+ *         description: Page of conversations with last message and unread count
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 page: { type: integer }
+ *                 limit: { type: integer }
+ *                 total: { type: integer }
+ *                 conversations: { type: array, items: { type: object } }
  */
 router.get("/chats", asyncHandler(listConversations));
 

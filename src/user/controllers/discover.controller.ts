@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { Types } from "mongoose";
 import { User } from "../../models/User";
 import { Partner } from "../../models/Partner";
+import { PartnerVideoView } from "../../models/PartnerVideoView";
 import { getOrCreateConversation, postMessage } from "../../shared/services/chat.service";
 import { broadcastNewMessage } from "../../sockets/chat.socket";
 import { HttpError } from "../../common/utils/HttpError";
@@ -22,7 +23,15 @@ export async function listDiscoverFeed(req: Request, res: Response) {
   const me = await User.findById(req.userId).select("favorites");
   const favorites = new Set((me?.favorites || []).map((id) => String(id)));
 
+  const views = await PartnerVideoView.find({ userId: req.userId }).select("partnerId watchedUrls");
+  const watchedCountByPartner = new Map(views.map((v) => [String(v.partnerId), v.watchedUrls.length]));
+  const partnersWithVideos = await Partner.find({ _id: { $in: views.map((v) => v.partnerId) } }).select("videos");
+  const exhaustedPartnerIds = partnersWithVideos
+    .filter((p) => (p.videos?.length || 0) > 0 && (watchedCountByPartner.get(String(p._id)) || 0) >= p.videos!.length)
+    .map((p) => p._id);
+
   const filter: Record<string, unknown> = { verificationStatus: "approved" };
+  if (exhaustedPartnerIds.length) filter._id = { $nin: exhaustedPartnerIds };
   if (req.query.isVip === "true") filter.isVip = true;
   else if (req.query.isVip === "false") filter.isVip = false;
 
@@ -106,7 +115,31 @@ export async function getPartnerVideos(req: Request, res: Response) {
   const partner = await Partner.findById(partnerId).select("videos");
   if (!partner) throw new HttpError(404, "Partner not found");
 
-  res.json({ _id: partner._id, videos: partner.videos });
+  const view = await PartnerVideoView.findOne({ userId: req.userId, partnerId }).select("watchedUrls");
+  const watched = new Set(view?.watchedUrls || []);
+
+  const url = (partner.videos || []).find((v) => !watched.has(v));
+
+  res.json({ _id: partner._id, video: url ? { url } : null });
+}
+
+export async function markPartnerVideoWatched(req: Request, res: Response) {
+  const partnerId = String(req.params.partnerId);
+  const url = String(req.body?.url || "").trim();
+  if (!Types.ObjectId.isValid(partnerId)) throw new HttpError(400, "Invalid partner id");
+  if (!url) throw new HttpError(400, "Video url is required");
+
+  const partner = await Partner.findById(partnerId).select("videos");
+  if (!partner) throw new HttpError(404, "Partner not found");
+  if (!partner.videos?.includes(url)) throw new HttpError(400, "Video url does not belong to this partner");
+
+  await PartnerVideoView.updateOne(
+    { userId: req.userId, partnerId },
+    { $addToSet: { watchedUrls: url } },
+    { upsert: true }
+  );
+
+  res.json({ success: true });
 }
 
 export async function toggleFavorite(req: Request, res: Response) {

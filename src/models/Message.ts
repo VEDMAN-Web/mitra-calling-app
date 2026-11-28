@@ -11,6 +11,7 @@ export interface IMessage extends Document {
   text?: string;
   call?: {
     status: CallMessageStatus;
+    callerRole: "user" | "partner";
     durationSeconds?: number;
   };
   createdAt: Date;
@@ -24,6 +25,7 @@ const messageSchema = new Schema<IMessage>(
     text: { type: String },
     call: {
       status: { type: String, enum: ["answered", "declined"] },
+      callerRole: { type: String, enum: ["user", "partner"] },
       durationSeconds: { type: Number },
     },
   },

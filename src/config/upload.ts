@@ -33,10 +33,30 @@ export const uploadUserImage = multer({
 
 export const uploadPartnerPreviewVideo = multer({
   storage: makeStorage(PARTNER_PREVIEW_CLIPS_DIR),
-  limits: { fileSize: 100 * 1024 * 1024 },
+  limits: { fileSize: 200 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
     if (!file.mimetype.startsWith("video/")) {
       cb(new Error("previewVideo must be a video file"));
+      return;
+    }
+    cb(null, true);
+  },
+});
+
+const VIDEO_FIELDS = new Set(["previewVideo", "videos"]);
+
+export const uploadPartnerMedia = multer({
+  storage: multer.diskStorage({
+    destination: (_req, file, cb) => cb(null, VIDEO_FIELDS.has(file.fieldname) ? PARTNER_PREVIEW_CLIPS_DIR : PARTNER_DOCS_DIR),
+    filename: (_req, file, cb) => {
+      const ext = path.extname(file.originalname);
+      cb(null, `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`);
+    },
+  }),
+  limits: { fileSize: 200 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (VIDEO_FIELDS.has(file.fieldname) && !file.mimetype.startsWith("video/")) {
+      cb(new Error(`${file.fieldname} must be a video file`));
       return;
     }
     cb(null, true);

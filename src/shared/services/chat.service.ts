@@ -59,10 +59,36 @@ export async function postMessage(
   return { conversation, message };
 }
 
+export async function postMessageAs(
+  conversationId: string,
+  actor: Actor,
+  chatRole: "user" | "partner",
+  text: string
+): Promise<{ conversation: IConversation; message: IMessage }> {
+  const conversation = await assertParticipant(conversationId, actor);
+
+  const trimmed = text.trim();
+  if (!trimmed) throw new HttpError(400, "text is required");
+
+  const message = await Message.create({
+    conversationId: conversation._id,
+    senderRole: chatRole,
+    text: trimmed,
+  });
+
+  conversation.lastMessage = { text: message.text!, senderRole: chatRole, createdAt: message.createdAt };
+  if (chatRole === "user") conversation.userLastReadAt = message.createdAt;
+  else conversation.partnerLastReadAt = message.createdAt;
+  await conversation.save();
+
+  return { conversation, message };
+}
+
 export async function postCallLogMessage(
   conversationId: string,
   actor: Actor,
   status: CallMessageStatus,
+  callerRole: "user" | "partner",
   durationSeconds?: number
 ): Promise<{ conversation: IConversation; message: IMessage }> {
   const conversation = await assertParticipant(conversationId, actor);
@@ -71,7 +97,7 @@ export async function postCallLogMessage(
     conversationId: conversation._id,
     senderRole: actor.role,
     type: "call",
-    call: status === "answered" ? { status, durationSeconds } : { status },
+    call: status === "answered" ? { status, callerRole, durationSeconds } : { status, callerRole },
   });
 
   const summaryText = status === "answered" ? `Call ended - ${formatDuration(durationSeconds!)}` : "Call declined";
